@@ -9,9 +9,8 @@ let building_a01_gridFrontGroup = new THREE.Group();
 let building_a01_armatureGroup = new THREE.Group();
 let building_a01_fenceGroup = new THREE.Group();
 let building_goundGroup = new THREE.Group();
-// let building_a01Group = new THREE.Group();
-// let building_a01Group = new THREE.Group();
-// let building_a01Group = new THREE.Group();
+let textureEquirec, textureCube, textureSphere;
+
 let dirLight_main;
 let dirLight_back;
 let carWorldPosition;
@@ -75,7 +74,55 @@ function init(){
   camera.position.set( 139.61, 97.08, 59.32 );
   controls.update()
   
-  
+  // Textures
+
+  let r = "./resource/textures/Bridge2/";
+  let urls = [ r + "posx.jpg", r + "negx.jpg",
+         r + "posy.jpg", r + "negy.jpg",
+         r + "posz.jpg", r + "negz.jpg" ];
+
+  textureCube = new THREE.CubeTextureLoader().load( urls );
+  textureCube.format = THREE.RGBFormat;
+  textureCube.mapping = THREE.CubeReflectionMapping;
+
+  let textureLoader = new THREE.TextureLoader();
+
+  textureEquirec = textureLoader.load( "textures/2294472375_24a3b8ef46_o.jpg" );
+  textureEquirec.mapping = THREE.EquirectangularReflectionMapping;
+  textureEquirec.magFilter = THREE.LinearFilter;
+  textureEquirec.minFilter = THREE.LinearMipMapLinearFilter;
+
+  textureSphere = textureLoader.load( "textures/metal.jpg" );
+  textureSphere.mapping = THREE.SphericalReflectionMapping;
+
+  // Materials
+
+  let equirectShader = THREE.ShaderLib[ "equirect" ];
+
+  let equirectMaterial = new THREE.ShaderMaterial( {
+    fragmentShader: equirectShader.fragmentShader,
+    vertexShader: equirectShader.vertexShader,
+    uniforms: equirectShader.uniforms,
+    depthWrite: false,
+    side: THREE.BackSide
+  } );
+
+  equirectMaterial.uniforms[ "tEquirect" ].value = textureEquirec;
+
+  let cubeShader = THREE.ShaderLib[ "cube" ];
+  let cubeMaterial = new THREE.ShaderMaterial( {
+    fragmentShader: cubeShader.fragmentShader,
+    vertexShader: cubeShader.vertexShader,
+    uniforms: cubeShader.uniforms,
+    depthWrite: false,
+    side: THREE.BackSide
+  } );
+
+  cubeMaterial.uniforms[ "tCube" ].value = textureCube;
+
+  // cubeMesh = new THREE.Mesh( new THREE.BoxBufferGeometry( 1000, 1000, 1000 ), cubeMaterial );
+  // scene.add( cubeMesh );
+
   //FBX import
   let fbxLoader = new THREE.FBXLoader();
   
@@ -98,10 +145,13 @@ function init(){
       roughnessMap: textureMapRough,
       normalMap:textureMapNormal,
       emissiveMap:textureMapEmi,
+      envMap:textureCube,
       emissive:0x9b9b96,
       metalness:0,
       roughness:1,
     });
+
+    mesh.material.needsUpdate = true;
 
     fbx.traverse( function ( child ) {
       if ( child.isMesh ) {
@@ -121,7 +171,7 @@ function init(){
   fbxLoader.load( './resource/models/fbx/building_a01_grid.fbx', function ( fbx ) {
     
     let txtLoader = new THREE.TextureLoader();
-    let textureMapRough = txtLoader.load( './resource/texturesEGKK_London_Empress_State_fence_Rough.jpg' );
+    let textureMapRough = txtLoader.load( './resource/textures/EGKK_London_Empress_State_fence_Rough.jpg' );
     let textureMapNormal = txtLoader.load( './resource/textures/EGKK_London_Empress_State_fence_NormalMap.png' );
     let textureMapOpacity = txtLoader.load( './resource/textures/EGKK_London_Empress_State_fence_Opacity.png' );
 
@@ -144,7 +194,7 @@ function init(){
         intersectObjs.push(child);
       }
     });
-    console.log(fbx);
+    // console.log(fbx);
     building_a01_gridGroup.add( fbx );
   });
 
@@ -153,7 +203,7 @@ function init(){
   fbxLoader.load( './resource/models/fbx/building_a01_gridFront.fbx', function ( fbx ) {
 
     let txtLoader = new THREE.TextureLoader();
-    let textureMapRough = txtLoader.load( './resource/texturesEGKK_London_Empress_State_fence_Rough.jpg' );
+    let textureMapRough = txtLoader.load( './resource/textures/EGKK_London_Empress_State_fence_Rough.jpg' );
     let textureMapNormal = txtLoader.load( './resource/textures/EGKK_London_Empress_State_fence_NormalMap.png' );
     let textureMapOpacity = txtLoader.load( './resource/textures/EGKK_London_Empress_State_fence_Opacity.png' );
 
@@ -176,7 +226,7 @@ function init(){
         intersectObjs.push(child);
       }
     });
-    console.log(fbx);
+    // console.log(fbx);
     building_a01_gridFrontGroup.add( fbx );
   });
   
@@ -185,7 +235,7 @@ function init(){
   fbxLoader.load( './resource/models/fbx/building_a01_armature.fbx', function ( fbx ) {
 
     let txtLoader = new THREE.TextureLoader();
-    let textureMapRough = txtLoader.load( './resource/texturesEGKK_London_Empress_State_fence_Rough.jpg' );
+    let textureMapRough = txtLoader.load( './resource/textures/EGKK_London_Empress_State_fence_Rough.jpg' );
     let textureMapNormal = txtLoader.load( './resource/textures/EGKK_London_Empress_State_fence_NormalMap.png' );
     let textureMapOpacity = txtLoader.load( './resource/textures/EGKK_London_Empress_State_fence_Opacity.png' );
 
@@ -208,7 +258,7 @@ function init(){
         intersectObjs.push(child);
       }
     });
-    console.log(fbx);
+    // console.log(fbx);
     building_a01_armatureGroup.add( fbx );
   });
   
@@ -217,7 +267,7 @@ function init(){
   fbxLoader.load( './resource/models/fbx/building_a01_fence.fbx', function ( fbx ) {
 
     let txtLoader = new THREE.TextureLoader();
-    let textureMapRough = txtLoader.load( './resource/texturesEGKK_London_Empress_State_fence_Rough.jpg' );
+    let textureMapRough = txtLoader.load( './resource/textures/EGKK_London_Empress_State_fence_Rough.jpg' );
     let textureMapNormal = txtLoader.load( './resource/textures/EGKK_London_Empress_State_fence_NormalMap.png' );
     let textureMapOpacity = txtLoader.load( './resource/textures/EGKK_London_Empress_State_fence_Opacity.png' );
 
@@ -240,7 +290,7 @@ function init(){
         intersectObjs.push(child);
       }
     });
-    console.log(fbx);
+    // console.log(fbx);
     building_a01_fenceGroup.add( fbx );
   });
   
@@ -268,7 +318,7 @@ function init(){
         intersectObjs.push(child);
       }
     });
-    console.log(fbx);
+    // console.log(fbx);
     building_goundGroup.add( fbx );
   });
   
