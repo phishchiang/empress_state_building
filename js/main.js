@@ -8,6 +8,7 @@ let building_a01_gridGroup = new THREE.Group();
 let building_a01_gridFrontGroup = new THREE.Group();
 let building_a01_armatureGroup = new THREE.Group();
 let building_a01_fenceGroup = new THREE.Group();
+let building_goundGroup = new THREE.Group();
 // let building_a01Group = new THREE.Group();
 // let building_a01Group = new THREE.Group();
 // let building_a01Group = new THREE.Group();
@@ -241,6 +242,34 @@ function init(){
     });
     console.log(fbx);
     building_a01_fenceGroup.add( fbx );
+  });
+  
+  // building_gound GEO
+  scene.add( building_goundGroup );
+  fbxLoader.load( './resource/models/fbx/building_gound.fbx', function ( fbx ) {
+
+    let txtLoader = new THREE.TextureLoader();
+    let textureMapOpacity = txtLoader.load( './resource/textures/greydientOpacity.jpg' );
+
+    fbx.mixer = new THREE.AnimationMixer( fbx );
+    let mesh = fbx.children[0];
+    mesh.material = new THREE.MeshStandardMaterial({ 
+      color:0x121212,
+      alphaMap:textureMapOpacity,
+      metalness:0,
+      roughness:1,
+    });
+    mesh.material.transparent = true;
+
+    fbx.traverse( function ( child ) {
+      if ( child.isMesh ) {
+        child.castShadow = true;
+        child.receiveShadow = true;
+        intersectObjs.push(child);
+      }
+    });
+    console.log(fbx);
+    building_goundGroup.add( fbx );
   });
   
   
