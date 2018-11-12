@@ -5,10 +5,14 @@ let clock = new THREE.Clock();
 let time = 0;
 let building_a01Group = new THREE.Group();
 let building_a01_gridGroup = new THREE.Group();
+let building_a01_gridFrontGroup = new THREE.Group();
+let building_a01_armatureGroup = new THREE.Group();
+let building_a01_fenceGroup = new THREE.Group();
 // let building_a01Group = new THREE.Group();
 // let building_a01Group = new THREE.Group();
 // let building_a01Group = new THREE.Group();
-let dirLight;
+let dirLight_main;
+let dirLight_back;
 let carWorldPosition;
 
 let mouse, raycaster;
@@ -40,15 +44,31 @@ function init(){
   hemiLight.groundColor.setHSL( 0.095, 1, 0.75 );
   hemiLight.position.set( 0, 50, 0 );
   scene.add( hemiLight );
+
+  // hemiLightHelper = new THREE.HemisphereLightHelper( hemiLight, 10 );
+  // scene.add( hemiLightHelper );
   
-  // DirLight
-  dirLight = new THREE.DirectionalLight( 0xffffff,  1.5 );
-  dirLight.color.setHSL( 0.1, 1, 0.95 );
-  dirLight.position.set( 1, 1.75, 1 );
-  dirLight.position.multiplyScalar( 30 );
-  scene.add( dirLight );
-  dirLight.castShadow = true;
-  
+  // DirLight Main
+  dirLight_main = new THREE.DirectionalLight( 0xf7f7e3,  1.5 );
+  dirLight_main.color.setHSL( 0.1, 1, 0.95 );
+  dirLight_main.position.set( 1, 1.75, -1 );
+  dirLight_main.position.multiplyScalar( 30 );
+  scene.add( dirLight_main );
+  dirLight_main.castShadow = true;
+
+  // dirLight_mainHeper = new THREE.DirectionalLightHelper( dirLight_main, 10 );
+  // scene.add( dirLight_mainHeper );
+
+  // DirLight Back
+  dirLight_back = new THREE.DirectionalLight( 0x94b9ce,  0.3 );
+  // dirLight_back.color.setHSL( 0.1, 1, 0.95 );
+  dirLight_back.position.set( -0.6, 1.75, 1.2 );
+  dirLight_back.position.multiplyScalar( 30 );
+  scene.add( dirLight_back );
+  dirLight_back.castShadow = true;
+
+  // dirLight_backHeper = new THREE.DirectionalLightHelper( dirLight_back, 10 );
+  // scene.add( dirLight_backHeper );
 
   let controls = new THREE.OrbitControls(camera, renderer.domElement)
   camera.position.set( 139.61, 97.08, 59.32 );
@@ -66,6 +86,8 @@ function init(){
     let txtLoader = new THREE.TextureLoader();
     let textureMapColor = txtLoader.load( './resource/textures/EGKK_London_Empress_State_Albedo.png' );
     let textureMapRough = txtLoader.load( './resource/textures/EGKK_London_Empress_State_Rough.jpg' );
+    let textureMapNormal = txtLoader.load( './resource/textures/EGKK_London_Empress_State_NormalMap.png' );
+    let textureMapEmi = txtLoader.load( './resource/textures/EGKK_London_Empress_State_Emission.png' );
     // let textureMapRough = txtLoader.load( './resource/textures/EGKK_London_Empress_State_Gloss.png' );
 
     fbx.mixer = new THREE.AnimationMixer( fbx );
@@ -73,8 +95,11 @@ function init(){
     mesh.material = new THREE.MeshStandardMaterial({ 
       map: textureMapColor, 
       roughnessMap: textureMapRough,
+      normalMap:textureMapNormal,
+      emissiveMap:textureMapEmi,
+      emissive:0x9b9b96,
       metalness:0,
-      roughness:0.8,
+      roughness:1,
     });
 
     fbx.traverse( function ( child ) {
@@ -84,7 +109,7 @@ function init(){
         intersectObjs.push(child);
       }
     });
-    console.log(fbx);
+    // console.log(fbx);
     building_a01Group.add( fbx );
   });
   // building_a01Group.rotation.set(0, -90*Math.PI/180, 0);
@@ -93,13 +118,23 @@ function init(){
   // building_a01_grid GEO
   scene.add( building_a01_gridGroup );
   fbxLoader.load( './resource/models/fbx/building_a01_grid.fbx', function ( fbx ) {
-    // building_a01_grid Texture
+    
     let txtLoader = new THREE.TextureLoader();
-    let textureMapColor = txtLoader.load( './resource/textures/EGKK_London_Empress_State_fence_Albedo.png' );
+    let textureMapRough = txtLoader.load( './resource/texturesEGKK_London_Empress_State_fence_Rough.jpg' );
+    let textureMapNormal = txtLoader.load( './resource/textures/EGKK_London_Empress_State_fence_NormalMap.png' );
+    let textureMapOpacity = txtLoader.load( './resource/textures/EGKK_London_Empress_State_fence_Opacity.png' );
 
     fbx.mixer = new THREE.AnimationMixer( fbx );
     let mesh = fbx.children[0];
-    mesh.material = new THREE.MeshStandardMaterial({ map: textureMapColor});
+    mesh.material = new THREE.MeshStandardMaterial({ 
+      color:0x96927f,
+      roughnessMap: textureMapRough,
+      normalMap:textureMapNormal,
+      alphaMap:textureMapOpacity,
+      metalness:0,
+      roughness:1,
+    });
+    mesh.material.transparent = true;
 
     fbx.traverse( function ( child ) {
       if ( child.isMesh ) {
@@ -112,6 +147,102 @@ function init(){
     building_a01_gridGroup.add( fbx );
   });
 
+  // building_a01_gridFront GEO
+  scene.add( building_a01_gridFrontGroup );
+  fbxLoader.load( './resource/models/fbx/building_a01_gridFront.fbx', function ( fbx ) {
+
+    let txtLoader = new THREE.TextureLoader();
+    let textureMapRough = txtLoader.load( './resource/texturesEGKK_London_Empress_State_fence_Rough.jpg' );
+    let textureMapNormal = txtLoader.load( './resource/textures/EGKK_London_Empress_State_fence_NormalMap.png' );
+    let textureMapOpacity = txtLoader.load( './resource/textures/EGKK_London_Empress_State_fence_Opacity.png' );
+
+    fbx.mixer = new THREE.AnimationMixer( fbx );
+    let mesh = fbx.children[0];
+    mesh.material = new THREE.MeshStandardMaterial({ 
+      color:0x96927f,
+      roughnessMap: textureMapRough,
+      normalMap:textureMapNormal,
+      alphaMap:textureMapOpacity,
+      metalness:0,
+      roughness:1,
+    });
+    mesh.material.transparent = true;
+
+    fbx.traverse( function ( child ) {
+      if ( child.isMesh ) {
+        child.castShadow = true;
+        child.receiveShadow = true;
+        intersectObjs.push(child);
+      }
+    });
+    console.log(fbx);
+    building_a01_gridFrontGroup.add( fbx );
+  });
+  
+  // building_a01_armature GEO
+  scene.add( building_a01_armatureGroup );
+  fbxLoader.load( './resource/models/fbx/building_a01_armature.fbx', function ( fbx ) {
+
+    let txtLoader = new THREE.TextureLoader();
+    let textureMapRough = txtLoader.load( './resource/texturesEGKK_London_Empress_State_fence_Rough.jpg' );
+    let textureMapNormal = txtLoader.load( './resource/textures/EGKK_London_Empress_State_fence_NormalMap.png' );
+    let textureMapOpacity = txtLoader.load( './resource/textures/EGKK_London_Empress_State_fence_Opacity.png' );
+
+    fbx.mixer = new THREE.AnimationMixer( fbx );
+    let mesh = fbx.children[0];
+    mesh.material = new THREE.MeshStandardMaterial({ 
+      color:0x96927f,
+      roughnessMap: textureMapRough,
+      normalMap:textureMapNormal,
+      alphaMap:textureMapOpacity,
+      metalness:0,
+      roughness:1,
+    });
+    mesh.material.transparent = true;
+
+    fbx.traverse( function ( child ) {
+      if ( child.isMesh ) {
+        child.castShadow = true;
+        child.receiveShadow = true;
+        intersectObjs.push(child);
+      }
+    });
+    console.log(fbx);
+    building_a01_armatureGroup.add( fbx );
+  });
+  
+  // building_a01_fence GEO
+  scene.add( building_a01_fenceGroup );
+  fbxLoader.load( './resource/models/fbx/building_a01_fence.fbx', function ( fbx ) {
+
+    let txtLoader = new THREE.TextureLoader();
+    let textureMapRough = txtLoader.load( './resource/texturesEGKK_London_Empress_State_fence_Rough.jpg' );
+    let textureMapNormal = txtLoader.load( './resource/textures/EGKK_London_Empress_State_fence_NormalMap.png' );
+    let textureMapOpacity = txtLoader.load( './resource/textures/EGKK_London_Empress_State_fence_Opacity.png' );
+
+    fbx.mixer = new THREE.AnimationMixer( fbx );
+    let mesh = fbx.children[0];
+    mesh.material = new THREE.MeshStandardMaterial({ 
+      color:0x96927f,
+      roughnessMap: textureMapRough,
+      normalMap:textureMapNormal,
+      alphaMap:textureMapOpacity,
+      metalness:0,
+      roughness:1,
+    });
+    mesh.material.transparent = true;
+
+    fbx.traverse( function ( child ) {
+      if ( child.isMesh ) {
+        child.castShadow = true;
+        child.receiveShadow = true;
+        intersectObjs.push(child);
+      }
+    });
+    console.log(fbx);
+    building_a01_fenceGroup.add( fbx );
+  });
+  
   
   scene.updateMatrixWorld(true);
   
